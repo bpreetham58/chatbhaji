@@ -26,13 +26,6 @@ A fully responsive and real-time chat application built with the **MERN Stack**.
 
 ---
 
-## 📸 Screenshots
-
-> *(Add screenshots or screen recordings here)*  
-> Login Page · Chat Room · User Profile · Mobile View
-
----
-
 ## ✨ Features
 
 - 🔐 User Registration & Login
