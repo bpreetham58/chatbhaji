@@ -1,7 +1,8 @@
 import { catchAsyncError } from "../middlewares/catchAsyncError.middleware.js";
 import { User } from "../models/user.model.js";
+import bcrypt from "bcryptjs";
+import { generateJWTToken } from "../utils/jwtToken.js";
 
-// 📝 Signup
 export const signup = catchAsyncError(async (req, res, next) => {
   const { fullname, email, password } = req.body;
 
@@ -35,31 +36,79 @@ export const signup = catchAsyncError(async (req, res, next) => {
     });
   }
 
-  const user = await User.create({ fullname, email, password });
+  const hashedPassword = await bcrypt.hash(password, 10);
 
-  res.status(201).json({
-    success: true,
-    message: "User registered successfully",
-    user,
+  const user = await User.create({
+    fullname,
+    email,
+    password: hashedPassword,
+    avatar: {
+      public_id: "",
+      url: "",
+    },
+  });
+
+  generateJWTToken(user, "User registered successfully", 201, res);
+});
+
+
+
+
+export const signin = catchAsyncError(async (req, res, next) => {
+  const {email, password } = req.body;
+
+  if ( !email || !password) {
+    return res.status(400).json({
+      success: false,
+      message: "All fields are required",
+    });
+  }
+
+  const emailRegex = /^\S+@\S+\.\S+$/;
+  if (!emailRegex.test(email)) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid email format",
+    });
+  }
+
+  const user=await User.findOne({email});
+  if(!user){
+    return res.status(400).json({
+      success: false,
+      message: "invalid crdentials",
+    });
+  }
+
+  const isPasswordMatched=await bcrypt.compare(password, user.password);
+  if(!isPasswordMatched){
+    return res.status(400).json({
+      success: false,
+      message: "invalid crdentials",
+    });
+  }
+
+  generateJWTToken(user,"user login successful",200,res);
+});
+
+
+export const signout = catchAsyncError(async (req, res, next) => {
+  res
+    .status(200)
+    .cookie("token","",{
+        
+      maxAge:0,
+      httpOnly: true,
+      sameSite:"strict",
+      secure: process.env.NODE_ENV !== "development" ? true : false,
+  }).json({
+      success: true,
+      message: "User logout successful."
   });
 });
 
-// 📝 Signin
-export const signin = catchAsyncError(async (req, res, next) => {
-  // TODO: Implement signin logic
-});
-
-// 📝 Signout
-export const signout = catchAsyncError(async (req, res, next) => {
-  // TODO: Implement signout logic
-});
-
-// 📝 Get User
 export const getUser = catchAsyncError(async (req, res, next) => {
-  // TODO: Implement get user logic
 });
 
-// 📝 Update Profile
 export const updateProfile = catchAsyncError(async (req, res, next) => {
-  // TODO: Implement update profile logic
 });
