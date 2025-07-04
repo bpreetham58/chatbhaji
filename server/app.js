@@ -5,10 +5,19 @@ import { config } from "dotenv";
 import fileUpload from "express-fileupload";
 import { dbConnection } from "./database/db.js";
 import userRouter from "./routes/user.routes.js";
+import { v2 as cloudinary } from "cloudinary";
 
 const app = express();
 
+// Load .env
 config({ path: "./config/config.env" });
+
+// ✅ Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
 
 app.use(
   cors({
